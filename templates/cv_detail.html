@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Details</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>📄 CV Details</h2>
+            <ul class="nav-links">
+                <li><a href="/database">↩️ Back to Database</a></li>
+                <li><a href="/ai-assistant/{{ cv_id }}" class="btn-ai">🤖 AI Assistant</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div id="cvContent"></div>
+    </div>
+
+    <script>
+        const cv_id = {{ cv_id }};
+
+        async function loadCV() {
+            try {
+                console.log('[CV] Loading CV:', cv_id);
+                const response = await fetch(`/api/cvs/${cv_id}`);
+                if (!response.ok) throw new Error('CV not found');
+                
+                const cv = await response.json();
+                console.log('[CV] Loaded successfully');
+                displayCV(cv);
+            } catch (error) {
+                console.error('[CV Error]:', error);
+                document.getElementById('cvContent').innerHTML = `<p class="error">❌ ${error.message}</p>`;
+            }
+        }
+
+        function displayCV(cv) {
+            let html = '';
+
+            html += `
+                <section class="detail-section">
+                    <h2>👤 Contact Information</h2>
+                    <div class="info-grid">
+                        ${cv.name ? `<div><strong>Name:</strong> ${cv.name}</div>` : ''}
+                        ${cv.email ? `<div><strong>Email:</strong> <a href="mailto:${cv.email}">${cv.email}</a></div>` : ''}
+                        ${cv.phone ? `<div><strong>Phone:</strong> ${cv.phone}</div>` : ''}
+                        ${cv.address ? `<div><strong>Address:</strong> ${cv.address}</div>` : ''}
+                        ${cv.linkedin ? `<div><strong>LinkedIn:</strong> <a href="${cv.linkedin}" target="_blank">Profile</a></div>` : ''}
+                        ${cv.github ? `<div><strong>GitHub:</strong> <a href="${cv.github}" target="_blank">Profile</a></div>` : ''}
+                    </div>
+                </section>
+            `;
+
+            if (cv.profile) {
+                html += `
+                    <section class="detail-section">
+                        <h2>📝 Professional Summary</h2>
+                        <p>${cv.profile}</p>
+                    </section>
+                `;
+            }
+
+            if (cv.skills && cv.skills.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h2>🎯 Skills</h2>
+                        <div class="tags-container">
+                            ${cv.skills.map(s => `<span class="tag">${s}</span>`).join('')}
+                        </div>
+                    </section>
+                `;
+            }
+
+            if (cv.employment_history && cv.employment_history.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h2>💼 Employment History</h2>
+                        ${cv.employment_history.map(job => `
+                            <div class="timeline-item">
+                                <h3>${job.title}</h3>
+                                <p><strong>${job.company}</strong>${job.location ? ` • ${job.location}` : ''}</p>
+                                <p class="date">${job.start_date || 'N/A'} - ${job.end_date || 'Present'}</p>
+                                ${job.description ? `<p>${job.description}</p>` : ''}
+                            </div>
+                        `).join('')}
+                    </section>
+                `;
+            }
+
+            if (cv.education && cv.education.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h2>🎓 Education</h2>
+                        ${cv.education.map(edu => `
+                            <div class="timeline-item">
+                                <h3>${edu.degree}</h3>
+                                <p><strong>${edu.institution}</strong>${edu.location ? ` • ${edu.location}` : ''}</p>
+                                <p class="date">${edu.start_date || 'N/A'} - ${edu.end_date || 'N/A'}</p>
+                            </div>
+                        `).join('')}
+                    </section>
+                `;
+            }
+
+            if (cv.certifications && cv.certifications.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h2>🏆 Certifications</h2>
+                        <ul>
+                            ${cv.certifications.map(c => `<li>${c}</li>`).join('')}
+                        </ul>
+                    </section>
+                `;
+            }
+
+            if (cv.languages && cv.languages.length > 0) {
+                html += `
+                    <section class="detail-section">
+                        <h2>🌍 Languages</h2>
+                        <div class="tags-container">
+                            ${cv.languages.map(l => `<span class="tag">${l}</span>`).join('')}
+                        </div>
+                    </section>
+                `;
+            }
+
+            document.getElementById('cvContent').innerHTML = html;
+        }
+
+        loadCV();
+    </script>
+</body>
+</html>
