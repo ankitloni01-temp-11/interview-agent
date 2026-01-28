@@ -10,4 +10,3 @@ chromadb>=0.4.0
 requests
 langchain>=0.1.0
 langchain-google-genai>=1.0.0
-langgraph>=0.0.10

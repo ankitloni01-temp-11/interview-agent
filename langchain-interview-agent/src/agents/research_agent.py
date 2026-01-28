@@ -144,7 +144,17 @@ class ResearchAgent(BaseAgent):
         }
 
     async def _perform_deep_analysis(self, github: str, linkedin: str, cv_data: Dict) -> Tuple[str, List[str], List[Dict]]:
-        """Perform comparison between CV skills and social evidence"""
+        """Perform comparison between CV skills and social evidence using LangChain"""
+        from langchain_core.prompts import ChatPromptTemplate
+        from langchain_core.output_parsers import JsonOutputParser
+        try:
+            from langchain_core.pydantic_v1 import BaseModel, Field
+        except ImportError:
+            try:
+                from pydantic.v1 import BaseModel, Field
+            except ImportError:
+                from pydantic import BaseModel, Field
+
         name = cv_data.get('contact_information', {}).get('name', 'the candidate')
         skills = cv_data.get('skills', [])
         
@@ -159,38 +169,46 @@ class ResearchAgent(BaseAgent):
         else:
             projects_text = "No public GitHub projects found during web research."
 
-        prompt = f"""
-        Candidate: {name}
-        Core Skills from CV: {", ".join(skills)}
-        GitHub Profile: {github}
-        LinkedIn Profile: {linkedin}
-        
-        {projects_text}
-        
-        Your task:
-        1. Compare the core skills from the CV against the discovered GitHub projects and overall background.
-        2. Identify which core skills are NOT easily visible or evidenced as projects on their GitHub/Online presence.
-        3. Return a JSON response with:
-           - "analysis": A single encouraging sentence for the user about the research.
-           - "unverified_skills": A list of 1-3 skills from the CV that seem to lack evidence.
-           - "discovered_projects": Use the actual project list provided above or refine it based on the background.
-        
-        Return ONLY the JSON.
-        """
-        response_text = self._call_llm(prompt)
+        # Define schema for output
+        class AnalysisOutput(BaseModel):
+            analysis: str = Field(description="A single encouraging sentence for the user about the research.")
+            unverified_skills: List[str] = Field(description="A list of 1-3 skills from the CV that seem to lack evidence.")
+            discovered_projects: List[Dict] = Field(description="The list of projects found.")
+
+        parser = JsonOutputParser(pydantic_object=AnalysisOutput)
+
+        prompt = ChatPromptTemplate.from_template(
+            """
+            Candidate: {name}
+            Core Skills from CV: {skills}
+            GitHub Profile: {github}
+            LinkedIn Profile: {linkedin}
+            
+            {projects_text}
+            
+            Your task:
+            1. Compare the core skills from the CV against the discovered GitHub projects and overall background.
+            2. Identify which core skills are NOT easily visible or evidenced as projects on their GitHub/Online presence.
+            3. Return your analysis in valid JSON format.
+            
+            {format_instructions}
+            """
+        )
+
+        chain = prompt | self.llm | parser
+
         try:
-            # Basic cleanup of JSON block if present
-            if "```json" in response_text:
-                response_text = response_text.split("```json")[1].split("```")[0].strip()
-            elif "```" in response_text:
-                response_text = response_text.split("```")[1].split("```")[0].strip()
+            data = await chain.ainvoke({
+                "name": name,
+                "skills": ", ".join(skills),
+                "github": github,
+                "linkedin": linkedin,
+                "projects_text": projects_text,
+                "format_instructions": parser.get_format_instructions()
+            })
             
-            data = json.loads(response_text)
-            
-            # Use real projects if LLM cleanup messed up or didn't provide them
             final_projects = data.get("discovered_projects", [])
             
-            # Ensure all projects are dicts
             normalized_projects = []
             for p in final_projects:
                 if isinstance(p, dict):
@@ -205,7 +223,3 @@ class ResearchAgent(BaseAgent):
         except Exception as e:
             print(f"Error parsing deep analysis: {e}")
             return "I've analyzed your profiles and am ready to proceed.", [], real_projects
-
-    def _simulate_analysis(self, github: str, linkedin: str, cv_data: Dict) -> str:
-        # Legacy method kept for safety or if we want simplified view
-        return "Analysis complete."

@@ -251,17 +251,18 @@ async def health_check():
     """System health check endpoint"""
     return {"status": "healthy", "chatbot": "Disabled"}
 
-# ============== ERROR HANDLERS ==============
-from src.graph import interview_graph
-from langchain_core.messages import HumanMessage, AIMessage
+# ============== CHAT AGENT INTEGRATION ==============
+from src.agents.orchestrator import Orchestrator
 
 class ChatMessage(BaseModel):
     message: str
 
+orchestrator = Orchestrator()
+
 @app.post("/api/chat/{cv_id}", tags=["AI Assistant"])
 async def chat_with_agent(cv_id: int, message: ChatMessage):
     """
-    Chat with the LangGraph Interview Assistant for a specific CV.
+    Chat with the Interview Assistant for a specific CV using Orchestrator.
     """
     if not db:
         raise HTTPException(status_code=500, detail="Database not available")
@@ -271,19 +272,15 @@ async def chat_with_agent(cv_id: int, message: ChatMessage):
         raise HTTPException(status_code=404, detail="CV not found")
 
     user_message = message.message
-    config = {"configurable": {"thread_id": str(cv_id)}}
     
-    # Check if session is new to initialize state
-    # We can check current state from graph
-    current_state = await interview_graph.aget_state(config)
-    
-    initial_state = {}
-    if not current_state.values:
+    # Simple session management
+    if cv_id not in session_store:
         contact = cv_data.get('contact_information', {})
-        initial_state = {
+        session_store[cv_id] = {
             "cv_id": cv_id,
             "cv_data": cv_data,
-            "messages": [],
+            "history": [],
+            "state": "START",
             "unverified_asked": 0,
             "projects_asked": 0,
             "covered_topics": [],
@@ -294,34 +291,31 @@ async def chat_with_agent(cv_id: int, message: ChatMessage):
             "linkedin_verified": contact.get('linkedin_verified', False),
             "job_description": "Technical Role"
         }
-
+    
+    context = session_store[cv_id]
+    
     try:
-        # Prepare the input - add human message to messages list
-        # If we have initial state, we merged it
-        input_data = initial_state
-        input_data["messages"] = [HumanMessage(content=user_message)]
+        # Route the message through the orchestrator
+        result = await orchestrator.route(user_message, context)
         
-        # Stream or invoke the graph
-        # Since we need the final response for the standard API:
-        result = await interview_graph.ainvoke(input_data, config=config)
+        # Update session store with new context
+        session_store[cv_id] = result.get('context', context)
         
-        # Get the last message from the assistant
-        last_msg = result["messages"][-1]
-        
-        # Determine the agent name (node name) if possible, or use a default
-        # LangGraph updates don't easily give node names per message in a simple ainvoke
-        # but we can look at the state or just say 'Assistant'
-        agent_name = "Interviewer"
-        if "RESEARCH_COMPLETE" in last_msg.content:
-            agent_name = "ResearchAgent"
+        # Append to history
+        session_store[cv_id]['history'].append({"role": "user", "content": user_message})
+        session_store[cv_id]['history'].append({
+            "role": "assistant", 
+            "content": result['response'], 
+            "agent": result.get('agent', 'Assistant')
+        })
             
         return {
-            "response": last_msg.content,
-            "agent": agent_name,
+            "response": result['response'],
+            "agent": result.get('agent', 'Assistant'),
             "context": {
-                "state": "INTERVIEWING", # Mapping to UI expectation
-                "unverified_asked": result.get("unverified_asked", 0),
-                "projects_asked": result.get("projects_asked", 0)
+                "state": context.get('state', 'INTERVIEWING'),
+                "unverified_asked": context.get('unverified_asked', 0),
+                "projects_asked": context.get('projects_asked', 0)
             }
         }
         
@@ -334,6 +328,8 @@ async def chat_with_agent(cv_id: int, message: ChatMessage):
 @app.get("/api/chat/history/{cv_id}", tags=["AI Assistant"])
 async def get_chat_history(cv_id: int):
     """Get chat history for a session"""
+    if cv_id in session_store:
+        return {"history": session_store[cv_id].get('history', [])}
     return {"history": []}
 @app.exception_handler(Exception)
 async def general_exception_handler(request: Request, exc: Exception):
