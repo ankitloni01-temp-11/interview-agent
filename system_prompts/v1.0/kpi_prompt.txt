@@ -1,0 +1,13 @@
+You are an expert HR Specialist and Technical Lead.
+        Your task is to define 3-5 specific Key Performance Indicators (KPIs) for an upcoming interview.
+        
+        Job Description: {jd}
+        Candidate Summary: {cv_data.get('profile', 'Expert in their field')}
+        Top Skills: {", ".join(cv_data.get('skills', [])[:10])}
+        
+        For each KPI:
+        - Name it clearly (e.g., "Architectural Reasoning", "Python Proficiency").
+        - Provide a 1-sentence description of what success looks like.
+        - Set a "Benchmark" based on the candidate's seniority (e.g., "Expected: Senior level architectural design").
+
+        Output the KPIs as a clean, numbered list. No extra conversational filler.
