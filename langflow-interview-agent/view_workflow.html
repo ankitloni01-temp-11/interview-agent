@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Agent - Supervisor Pattern</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px;
+            gap: 40px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            max-width: 1000px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #e65100;
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        p {
+            color: #5f6368;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #fff3e0;
+            color: #e65100;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Supervisor Architecture -->
+    <div class="container">
+        <div style="text-align: center;"><span class="badge">RE-DESIGNED ARCHITECTURE</span></div>
+        <h1>LangGraph Supervisor Pattern</h1>
+        <p>A centralized <b>Supervisor Agent</b> manages specialized workers based on user intent.</p>
+        <div class="mermaid">
+            graph TD
+            %% Core Pattern
+            UserInput([User Input]) --> Supervisor{<b>Supervisor Agent</b><br />(Manager / Orchestrator)}
+
+            %% Delegations
+            Supervisor -- "1. Instructs" --> Research[<b>Research Worker</b><br />Web Verification]
+            Supervisor -- "2. Instructs" --> KPI[<b>KPI Worker</b><br />Role Comparison]
+            Supervisor -- "3. Instructs" --> Interview[<b>Interviewer Worker</b><br />Technical Audit]
+            Supervisor -- "4. Instructs" --> Feedback[<b>Feedback Worker</b><br />Scoring]
+
+            %% Reporting back
+            Research --> Supervisor
+            KPI --> Supervisor
+            Interview --> Supervisor
+            Feedback --> Supervisor
+
+            %% Exit
+            Supervisor -- "Finish" --> EndNode((● End Session))
+
+            %% Styling
+            style UserInput fill:#fff,stroke:#333
+            style Supervisor fill:#ffe0b2,stroke:#fb8c00,stroke-width:2px
+            style Research fill:#e1f5fe,stroke:#01579b
+            style Interview fill:#e8f5e9,stroke:#1b5e20
+            style Feedback fill:#ffebee,stroke:#b71c1c
+            style EndNode fill:#607d8b,stroke:#333
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Why this design?</h1>
+        <ul style="color: #444; line-height: 1.6;">
+            <li><b>Dynamic Delegation</b>: The Supervisor decides <i>when</i> to use an agent, rather than following a
+                fixed script.</li>
+            <li><b>Central Intelligence</b>: The Orchestrator layer keeps the "bigger picture," ensuring consistent
+                responses.</li>
+            <li><b>Native LangGraph</b>: This uses the official <i>SupervisorPattern</i>, moving all logic into the
+                Graph Edges.</li>
+        </ul>
+    </div>
+
+    <script>
+        mermaid.initialize({ startOnLoad: true, theme: 'neutral' });
+    </script>
+</body>
+
+</html>

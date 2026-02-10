@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Parser - Upload Resume</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>📄 CV Parser</h2>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/database">📚 Database</a></li>
+                <li><a href="/docs" target="_blank">📖 API Docs</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="header">
+            <h1>📄 CV Parser</h1>
+            <p>Upload your resume to extract structured data automatically</p>
+        </div>
+
+        <div class="upload-card">
+            <form id="uploadForm">
+                <div class="file-input-wrapper">
+                    <input type="file" id="fileInput" accept=".pdf" required>
+                    <label for="fileInput" class="file-label">
+                        <span class="upload-icon">📁</span>
+                        <span class="upload-text">Choose PDF File or Drag & Drop</span>
+                    </label>
+                </div>
+                <button type="submit" class="btn-upload">🚀 Upload & Parse</button>
+            </form>
+        </div>
+
+        <div id="loadingSpinner" class="hidden">
+            <div class="spinner"></div>
+            <p>Processing your resume...</p>
+        </div>
+
+        <div id="errorMessage" class="error hidden"></div>
+        <div id="successMessage" class="success hidden"></div>
+    </div>
+
+    <script>
+        const form = document.getElementById('uploadForm');
+        const fileInput = document.getElementById('fileInput');
+        const fileLabel = document.querySelector('.file-label');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const errorMessage = document.getElementById('errorMessage');
+        const successMessage = document.getElementById('successMessage');
+
+        // Drag and drop
+        fileLabel.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            fileLabel.style.borderColor = '#FF9800';
+            fileLabel.style.backgroundColor = '#FFF3E0';
+        });
+
+        fileLabel.addEventListener('dragleave', () => {
+            fileLabel.style.borderColor = '#2196F3';
+            fileLabel.style.backgroundColor = '';
+        });
+
+        fileLabel.addEventListener('drop', (e) => {
+            e.preventDefault();
+            fileLabel.style.borderColor = '#2196F3';
+            fileLabel.style.backgroundColor = '';
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.pdf')) {
+                fileInput.files = files;
+            }
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.pdf')) {
+                errorMessage.textContent = '❌ Please upload a PDF file';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            loadingSpinner.classList.remove('hidden');
+            errorMessage.classList.add('hidden');
+            successMessage.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/parse-cv', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to parse CV');
+                }
+
+                const data = await response.json();
+                successMessage.textContent = '✅ CV parsed successfully! Redirecting...';
+                successMessage.classList.remove('hidden');
+                
+                // Store and redirect
+                sessionStorage.setItem('cvData', JSON.stringify(data));
+                setTimeout(() => {
+                    window.location.href = '/database';
+                }, 2000);
+                
+            } catch (error) {
+                errorMessage.textContent = `❌ ${error.message}`;
+                errorMessage.classList.remove('hidden');
+            } finally {
+                loadingSpinner.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

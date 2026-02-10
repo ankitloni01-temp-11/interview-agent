@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Results</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <button class="btn-back" onclick="window.location.href='/'">← Back</button>
+        <div id="resultContent"></div>
+    </div>
+    <script>
+        const data = JSON.parse(sessionStorage.getItem('cvData'));
+        if (data) {
+            let html = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            document.getElementById('resultContent').innerHTML = html;
+        }
+    </script>
+</body>
+</html>

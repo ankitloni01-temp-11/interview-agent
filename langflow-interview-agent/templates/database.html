@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume Database</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h2>📚 Resume Database</h2>
+            <ul class="nav-links">
+                <li><a href="/">⬅️ Back to Upload</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="database-header">
+            <h1>📚 Resume Database</h1>
+        </div>
+
+        <div id="resumesList" class="resumes-list"></div>
+    </div>
+
+
+    <script>
+        // ============== RESUME LIST ==============
+        async function loadResumes() {
+            try {
+                console.log('[DB] Loading all resumes...');
+                const response = await fetch('/api/cvs');
+                const resumes = await response.json();
+                console.log('[DB] Loaded:', resumes.length, 'resumes');
+
+                displayResumes(resumes);
+            } catch (error) {
+                console.error('[Error]:', error);
+                document.getElementById('resumesList').innerHTML =
+                    `<p class="error">❌ ${error.message}</p>`;
+            }
+        }
+
+        function displayResumes(resumes) {
+            const container = document.getElementById('resumesList');
+
+            if (resumes.length === 0) {
+                container.innerHTML = '<p class="info">No resumes uploaded yet. <a href="/">Upload one</a></p>';
+                return;
+            }
+
+            let html = '';
+            resumes.forEach(resume => {
+                html += `
+    <div class="resume-card">
+        <div class="resume-card-content">
+            <div class="resume-info-simple">
+                <h4>👤 ${resume.name || 'Unknown'}</h4>
+                <p class="resume-filename">📄 ${resume.filename}</p>
+            </div>
+            <div class="resume-actions">
+                <a href="/cv/${resume.id}" class="btn-view">Details</a>
+                <a href="/ai-assistant/${resume.id}" class="btn-ai">🤖 AI Assistant</a>
+                <button class="btn-delete" onclick="deleteResume(${resume.id})">🗑️</button>
+            </div>
+        </div>
+    </div>
+    `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        async function deleteResume(resumeId) {
+            if (!confirm('Delete this resume?')) return;
+
+            try {
+                const response = await fetch(`/api/cvs/${resumeId}`, { method: 'DELETE' });
+                if (response.ok) {
+                    console.log('[DB] Resume deleted');
+                    loadResumes();
+                }
+            } catch (error) {
+                alert(`Error: ${error.message}`);
+            }
+        }
+
+
+
+        console.log('[Init] Loading database page...');
+        loadResumes();
+    </script>
+</body>
+
+</html>

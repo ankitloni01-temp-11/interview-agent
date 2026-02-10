@@ -1,0 +1,71 @@
+================================================================================
+SIDE-BY-SIDE INTERVIEW COMPARISON
+LangChain (Port 8001) vs LangGraph (Port 8000)
+================================================================================
+
+[SETUP] Uploading test CV to both servers...
+LangChain CV Upload: 200
+LangGraph CV Upload: 200
+LangChain CV ID: 10
+LangGraph CV ID: 10
+
+================================================================================
+RUNNING INTERVIEW TESTS
+================================================================================
+
+================================================================================
+TURN 1: Hi
+================================================================================
+
+[LANGCHAIN]
+Agent: Unknown
+Response: Hello there! I'm your friendly AI Assistant for CV Parser. I can help you analyze resumes! How can I assist you today?...
+
+[LANGGRAPH]
+Agent: GreetingBot
+Response: Hello! I'm here to assist you with the interview process. How can I help you today?...
+
+================================================================================
+TURN 2: Let's start the research phase
+================================================================================
+
+[LANGCHAIN]
+Agent: Unknown
+Response: I can help with that! To make sure I'm on the right track, could you tell me a bit more about what you mean by "research phase"?
+
+Are you looking for ...
+
+[LANGGRAPH]
+Agent: ResearchAgent
+Response: I've successfully verified your profiles via web research. Priya Sharma's GitHub profile shows some activity, suggesting a basic understanding of web ...
+
+================================================================================
+TURN 3: My GitHub is github.com/priyasharma and LinkedIn is linkedin.com/in/priya-sharma
+================================================================================
+
+[LANGCHAIN]
+Agent: Unknown
+Response: 🚫 **Out of Scope**
+
+I am a specialized CV Parser AI designed to analyze resumes and candidate data.
+I cannot answer questions about "My GitHub is gith...
+
+[LANGGRAPH]
+Agent: KPIAgent
+Response: Based on your profile and the target role (Technical Role), I've defined the technical benchmarks for our interview. I'm ready to begin whenever you a...
+
+================================================================================
+TURN 4: Okay, let's proceed
+================================================================================
+
+[LANGCHAIN]
+Agent: Unknown
+Response: Could you please clarify what you'd like to proceed with? Are you ready for me to analyze a CV, or something else?...
+
+[LANGGRAPH]
+Agent: InterviewerAgent
+Response: Okay, I understand. Let's talk about your professional experience with Django. Can you describe a project where you used Django in a production enviro...
+
+================================================================================
+COMPARISON COMPLETE
+================================================================================

@@ -1,0 +1,65 @@
+/home/labuser/.local/lib/python3.10/site-packages/google/api_core/_python_version_support.py:275: FutureWarning: You are using a Python version (3.10.12) which Google will stop supporting in new releases of google.api_core once it reaches its end of life (2026-10-04). Please upgrade to the latest Python version, or at least Python 3.11, to continue receiving updates for google.api_core past that date.
+  warnings.warn(message, FutureWarning)
+/home/labuser/VSCODE_training/interview-agent/langchain-interview-agent/src/gemini_parser.py:1: FutureWarning: 
+
+All support for the `google.generativeai` package has ended. It will no longer be receiving 
+updates or bug fixes. Please switch to the `google.genai` package as soon as possible.
+See README for more details:
+
+https://github.com/google-gemini/deprecated-generative-ai-python/blob/main/README.md
+
+  import google.generativeai as genai
+INFO:     Started server process [27944]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+ERROR:    [Errno 98] error while attempting to bind on address ('0.0.0.0', 8001): address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+
+============================================================
+[STARTUP] Initializing CV Parser Application
+============================================================
+[✓] GEMINI_API_KEY loaded from .env (39 chars)
+[✓] SERPER_API_KEY loaded from .env (40 chars)
+[INIT] Importing config...
+[INIT] API_KEY status: ✓ Found
+[INIT] Initializing vector store...
+[VectorStore] Initialized at data/chroma_db
+[✓] Vector store initialized
+[INIT] Importing parser...
+[✓] Parser initialized
+[INIT] Importing database...
+[DB] Initializing database at: data/cv_database.db
+[DB] Creating tables...
+[DB] ✓ resumes table created
+[DB] ✓ skills table created
+[DB] ✓ employment_history table created
+[DB] ✓ education table created
+[DB] ✓ certifications table created
+[DB] ✓ languages table created
+[DB] ✓ All tables created successfully
+[DB] Database ready (with vector store)
+[✓] Database initialized
+
+[✓✓✓] All services initialized successfully!
+[✓] RAG enabled with ChromaDB + text-embedding-004
+============================================================
+
+
+    
+    ╔═══════════════════════════════════════════════╗
+    ║   🎓 Interview Agent (CV Parsing Base)         ║
+    ║         Started Successfully!                  ║
+    ╚═══════════════════════════════════════════════╝
+    
+    🌐 Web App: http://localhost:8000
+    📚 Swagger Docs: http://localhost:8000/docs
+    
+    Features:
+    ✅ Upload & Parse CVs
+    ✅ Normalized SQLite Schema
+    ✅ Query Any Resume Data
+    
+    
+
+[SHUTDOWN] Application stopping...
